@@ -14,8 +14,13 @@ class UserDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Detail User'),
         centerTitle: true,
-        backgroundColor: Color(0xFF8B0000),
-        titleTextStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 24, color: Colors.white),
+        backgroundColor: const Color(0xFF8B0000),
+        foregroundColor: Colors.white,
+        titleTextStyle: const TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 24,
+          color: Colors.white,
+        ),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: userDoc.get(),
@@ -25,7 +30,7 @@ class UserDetailPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Data user tidak ditemukan.'));
+            return const Center(child: Text('User data not found.'));
           }
 
           final user = snapshot.data!.data() as Map<String, dynamic>;
@@ -41,37 +46,136 @@ class UserDetailPage extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 60,
-                  backgroundImage: photoUrl.isNotEmpty
-                      ? NetworkImage(photoUrl)
-                      : const AssetImage('assets/images/default_avatar.png')
-                          as ImageProvider,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  name,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(email, style: const TextStyle(fontSize: 16)),
-                const Divider(height: 30),
-                ListTile(
-                  leading: const Icon(Icons.security),
-                  title: const Text('Role'),
-                  subtitle: Text(role),
-                ),
-                if (createdAt != null)
-                  ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Dibuat pada'),
-                    subtitle: Text(createdAt.toString()),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: const Color(0xFF8B0000).withOpacity(0.1),
+                          backgroundImage: photoUrl.isNotEmpty
+                              ? NetworkImage(photoUrl)
+                              : const AssetImage('assets/images/default_avatar.png')
+                                  as ImageProvider,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF8B0000),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF8B0000).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            role.toUpperCase(),
+                            style: const TextStyle(
+                              color: Color(0xFF8B0000),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildInfoTile(
+                        icon: Icons.phone,
+                        title: 'Phone',
+                        subtitle: phone,
+                      ),
+                      const Divider(height: 1),
+                      _buildInfoTile(
+                        icon: Icons.location_on,
+                        title: 'Address',
+                        subtitle: address,
+                      ),
+                      if (createdAt != null) ...[
+                        const Divider(height: 1),
+                        _buildInfoTile(
+                          icon: Icons.calendar_today,
+                          title: 'Created At',
+                          subtitle: _formatDate(createdAt),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           );
         },
       ),
     );
+  }
+
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF8B0000).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          color: const Color(0xFF8B0000),
+        ),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          color: Colors.grey,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

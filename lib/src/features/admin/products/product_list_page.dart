@@ -11,7 +11,7 @@ class ProductListPage extends StatefulWidget {
 }
 
 class _ProductListPageState extends State<ProductListPage> {
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   Future<void> _navigateToAddPage() async {
     final result = await Navigator.push(
@@ -19,7 +19,6 @@ class _ProductListPageState extends State<ProductListPage> {
       MaterialPageRoute(builder: (_) => const AddProductPage()),
     );
 
-    // ✅ Jika berhasil menambahkan produk, tampilkan notifikasi kecil
     if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -34,14 +33,15 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: const Text(
           'Daftar Produk',
           style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
-          textAlign: TextAlign.center,
         ),
-        backgroundColor: Color(0xFF8B0000),
+        backgroundColor: const Color(0xFF8B0000),
         centerTitle: true,
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -59,70 +59,143 @@ class _ProductListPageState extends State<ProductListPage> {
                       child: Text('Terjadi kesalahan: ${snapshot.error}'));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('Belum ada produk'));
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inventory_2_outlined,
+                            size: 80, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'Belum ada produk',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 final products = snapshot.data!.docs;
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    final doc = products[index];
-                    final data = doc.data() as Map<String, dynamic>;
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.75,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final doc = products[index];
+                      final data = doc.data() as Map<String, dynamic>;
 
-                    final nama = data['nama'] ?? 'Tanpa Nama';
-                    final deskripsi = data['deskripsi'] ?? '';
-                    final imageUrl = data['imageUrl'] ?? '';
-                    final harga = (data['harga'] as num?)?.toDouble() ?? 0.0;
+                      final nama = data['nama'] ?? 'Tanpa Nama';
+                      final imageUrl = data['imageUrl'] ?? '';
+                      final harga = (data['harga'] as num?)?.toDouble() ?? 0.0;
 
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 4),
-                      elevation: 3,
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        leading: imageUrl.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageUrl,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) =>
-                                          const Icon(Icons.broken_image,
-                                              size: 40),
-                                ),
-                              )
-                            : const Icon(Icons.image_not_supported, size: 40),
-                        title: Text(
-                          nama,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        subtitle: Text(
-                          'Rp ${harga.toStringAsFixed(0)}\n$deskripsi',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      return GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  ProductDetailPage(productId: doc.id, productData: data, product: doc),
+                              builder: (_) => ProductDetailPage(
+                                  productId: doc.id,
+                                  productData: data,
+                                  product: doc),
                             ),
                           );
                         },
-                      ),
-                    );
-                  },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 1,
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16),
+                                      topRight: Radius.circular(16),
+                                    ),
+                                  ),
+                                  child: imageUrl.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(16),
+                                            topRight: Radius.circular(16),
+                                          ),
+                                          child: Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    const Center(
+                                              child: Icon(Icons.broken_image,
+                                                  size: 40,
+                                                  color: Colors.grey),
+                                            ),
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Icon(Icons.image_not_supported,
+                                              size: 40, color: Colors.grey),
+                                        ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        nama,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        'Rp ${harga.toStringAsFixed(0)}',
+                                        style: const TextStyle(
+                                          color: Color(0xFF8B0000),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),

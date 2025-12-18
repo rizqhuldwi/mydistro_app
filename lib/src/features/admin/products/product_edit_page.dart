@@ -32,6 +32,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   }
 
   Future<void> _loadProductData() async {
+    setState(() => _isLoading = true);
     try {
       final doc = await FirebaseFirestore.instance
           .collection('products')
@@ -53,6 +54,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal memuat data produk: $e')),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -67,8 +70,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   Future<String?> _uploadToCloudinary(File imageFile) async {
     const cloudName = 'mydistroapp';
     const uploadPreset = 'mydistroapp';
-    const apiUrl =
-        'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+    const apiUrl = 'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
 
     final request = http.MultipartRequest('POST', Uri.parse(apiUrl))
       ..fields['upload_preset'] = uploadPreset
@@ -94,7 +96,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
     try {
       String? imageUrl = _currentImageUrl;
 
-      // Jika user memilih foto baru → upload ke Cloudinary
       if (_newImageFile != null) {
         final uploadedUrl = await _uploadToCloudinary(_newImageFile!);
         if (uploadedUrl != null) {
@@ -143,115 +144,268 @@ class _ProductEditPageState extends State<ProductEditPage> {
     super.dispose();
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.grey[600]),
+          prefixIcon: Icon(icon, color: const Color(0xFF8B0000)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF8B0000), width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red, width: 1),
+          ),
+        ),
+        validator: validator,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        elevation: 0,
         title: const Text('Edit Produk'),
-        titleTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white),
-        backgroundColor: Color(0xFF8B0000),
+        titleTextStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+          color: Colors.white,
+        ),
+        backgroundColor: const Color(0xFF8B0000),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF8B0000)),
+            )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            height: 180,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.grey[200],
-                              image: _newImageFile != null
-                                  ? DecorationImage(
-                                      image: FileImage(_newImageFile!),
-                                      fit: BoxFit.cover)
-                                  : (_currentImageUrl != null
+              child: Column(
+                children: [
+                  // Header dengan gambar
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF8B0000),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: Center(
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 180,
+                                width: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                  image: _newImageFile != null
                                       ? DecorationImage(
-                                          image: NetworkImage(_currentImageUrl!),
-                                          fit: BoxFit.cover)
-                                      : null),
-                            ),
-                            child: _currentImageUrl == null &&
-                                    _newImageFile == null
-                                ? const Icon(Icons.camera_alt,
-                                    size: 40, color: Colors.grey)
-                                : null,
-                          ),
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black45,
-                                borderRadius: BorderRadius.circular(8),
+                                          image: FileImage(_newImageFile!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : (_currentImageUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(_currentImageUrl!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null),
+                                ),
+                                child: _currentImageUrl == null && _newImageFile == null
+                                    ? Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.add_photo_alternate,
+                                              size: 50, color: Colors.grey[400]),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Tambah Foto',
+                                            style: TextStyle(
+                                              color: Colors.grey[500],
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : null,
                               ),
-                              child: const Icon(Icons.edit,
-                                  color: Colors.white, size: 20),
+                              Positioned(
+                                bottom: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF8B0000),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Form Fields
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Informasi Produk',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF8B0000),
                             ),
                           ),
+                          const SizedBox(height: 16),
+
+                          _buildTextField(
+                            controller: _namaController,
+                            label: 'Nama Produk',
+                            icon: Icons.shopping_bag_outlined,
+                            validator: (v) => v!.isEmpty ? 'Nama produk wajib diisi' : null,
+                          ),
+
+                          _buildTextField(
+                            controller: _deskripsiController,
+                            label: 'Deskripsi Produk',
+                            icon: Icons.description_outlined,
+                            maxLines: 3,
+                            validator: (v) => v!.isEmpty ? 'Deskripsi wajib diisi' : null,
+                          ),
+
+                          _buildTextField(
+                            controller: _hargaController,
+                            label: 'Harga Produk',
+                            icon: Icons.attach_money,
+                            keyboardType: TextInputType.number,
+                            validator: (v) => v!.isEmpty ? 'Harga wajib diisi' : null,
+                          ),
+
+                          _buildTextField(
+                            controller: _kategoriController,
+                            label: 'Kategori Produk',
+                            icon: Icons.category_outlined,
+                          ),
+
+                          _buildTextField(
+                            controller: _ukuranController,
+                            label: 'Ukuran Produk',
+                            icon: Icons.straighten_outlined,
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Tombol Simpan
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _updateProduct,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF8B0000),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 4,
+                                shadowColor: const Color(0xFF8B0000).withOpacity(0.4),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.save, size: 24),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          'Simpan Perubahan',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _namaController,
-                      decoration: const InputDecoration(labelText: 'Nama Produk'),
-                      validator: (v) =>
-                          v!.isEmpty ? 'Nama produk wajib diisi' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _deskripsiController,
-                      decoration:
-                          const InputDecoration(labelText: 'Deskripsi Produk'),
-                      validator: (v) =>
-                          v!.isEmpty ? 'Deskripsi wajib diisi' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _hargaController,
-                      decoration:
-                          const InputDecoration(labelText: 'Harga Produk'),
-                      keyboardType: TextInputType.number,
-                      validator: (v) =>
-                          v!.isEmpty ? 'Harga wajib diisi' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _kategoriController,
-                      decoration:
-                          const InputDecoration(labelText: 'Kategori Produk'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _ukuranController,
-                      decoration:
-                          const InputDecoration(labelText: 'Ukuran Produk'),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: _updateProduct,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Simpan Perubahan', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF8B0000),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 24),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
     );
