@@ -41,8 +41,8 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAFDdl84NkQq1scoSKmWv3MtMBUweA2yHs',
-    appId: '1:684785925677:web:cc1440a58e62fe580282a4',
+    apiKey: '',
+    appId: '',
     messagingSenderId: '684785925677',
     projectId: 'projek-distro',
     authDomain: 'projek-distro.firebaseapp.com',
@@ -51,8 +51,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB3kEIs9vTZ3uh0sYnmf6TyLhUY3cNOsME',
-    appId: '1:684785925677:android:d149da9995d7c7350282a4',
+    apiKey: '',
+    appId: '',
     messagingSenderId: '684785925677',
     projectId: 'projek-distro',
     storageBucket: 'projek-distro.firebasestorage.app',
@@ -68,8 +68,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCLNTvqeoX531JOIH2hLgArHiadmzqbRoU',
-    appId: '1:684785925677:ios:e7701e844accd5170282a4',
+    apiKey: '',
+    appId: '',
     messagingSenderId: '684785925677',
     projectId: 'projek-distro',
     storageBucket: 'projek-distro.firebasestorage.app',
@@ -77,8 +77,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAFDdl84NkQq1scoSKmWv3MtMBUweA2yHs',
-    appId: '1:684785925677:web:ce3fe37f2f1f27810282a4',
+    apiKey: '',
+    appId: '',
     messagingSenderId: '684785925677',
     projectId: 'projek-distro',
     authDomain: 'projek-distro.firebaseapp.com',
